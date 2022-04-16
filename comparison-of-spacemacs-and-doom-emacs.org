@@ -1,0 +1,456 @@
+; -*- eval: (annotate-mode 1); -*-
+#+HTML_HEAD_EXTRA: <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css" />
+
+* Learning Emacs and Emacs Lisp
+This document is more than just a set of notes. It is intended to grow into a
+literate program that defines the eventual Emacs configuration I will use going
+forward, as a user of and contributor to Spacemacs.
+
+I have used Spacemacs actively since July 2020, almost two years now. I have
+benefited from the power of Emacs and the work of its community and that of
+Spacemacs, especially in my work as a research assistant creating GNU R scripts
+and a Shiny application to visualize my evolutionary simulation models in
+SLiM 3. I have also become a contributor to SLiM, becoming the volunteer package
+maintainer (and original author) of the RPM and DEB packages for that
+application.
+
+In short, to give back to the community I am learning more about Emacs and
+Spacemacs, and during that learning process I will be maintaining this document
+to explore existing code, new ideas, and other relevant bits of computing in GNU
+Linux.
+
+** Ꝙuakemacs
+Planet Emacs has many moons. Luna is one of them, perhaps it is the biggest moon
+because it is a fork of Spacemacs. Its existence is entirely speculative. There
+is no evidence for it except this picture of the far side of Luna and the few
+items in the unordered list below.
+
+#+ATTR_ORG: :width 300
+[[file:600px-Moon_Farside_LRO.png]]
+
+- Spacemacs' Lunar Base Fallback :: when Spacemacs fails to initialize, it will
+  fall back to the lunar base, on Luna, which is a modified form of the
+  Spacemacs Base distribution.
+- Strogg :: Various strogg perform different tasks related to
+  stroggification, the process of creating configurations through cybernetic
+  disfiguration of both Doom Emacs and Spacemacs.
+- Harvester :: a plugin or module or layer for DOOM to stroggify Spacemacs
+  layers and configurations.
+  - What is a harvester :: The harvester is, much like armoured workers in
+    hexapoda, a construction responsible for the gathering of biotic resources
+    for the Strogg to consume through cybernetic surgery, it is thus responsible
+    for gathering and protecting the resources that enable Strogg reproduction.
+    Despite its enormous size and aggresive appearance, its primary task, as
+    stated, is collecting corpses from the battlefield so that
+    refineries/factories can make new Strogg or the lubricant known as stroyent.
+    The aggressivity of the harvester is primarily tied to its responsibility
+    for resources collection. When a threat to collection is identified it will
+    attempt to eliminate it.
+
+    #+ATTR_ORG: :width 666
+    #+ATTR_HTML: :width 666 :align center
+   [[file:~/.local/share/icons/harvester.png]]
+    /Spacemasc is not dead, it is undead through cyberneticsThemes/
+- Harvester's mausoleum :: this is the repository of Spacemacs softwares for
+  entombment into DOOM.
+  *How are bodies placed in a mausoleum?*
+  Some mausoleums are built for just one or two bodies, while others are large
+  structures that house many. After funeral services, the body is placed in a
+  small room within the mausoleum, just large enough for the casket. The room is
+  called */a crypt/*, and the process of placing the casket in the crypt is called
+  */entombment/*. May 6, 2019 (legacy.com)
+
+*** Avy
+Spacemacs has a good configuration of Avy, placing it behind the jump/join
+prefix on J (=SPC j=). Jumping to a word is easy, =w= is pressed after the jump
+prefix and then a character specifying the first letter of any visible word is
+taken invisibly (no feedback is given to the user to show that a keypress is
+required). Once a key is pressed, all candidates with that letter are given a
+character overlay.
+
+* Comparison of Spacemacs and DOOM Emacs
+** Both DOOM Emacs and Spacemacs
+- Configure Emacs
+  - packages  :: Specify a core set of packages that are used by the
+    configuration; allow the use of modules, extensions, plugins, or layers
+    (regardless of the name used) to provide further functionality while
+    integrating these with the organization of the configuration framework.
+  - interface :: are provided and used, and customizations of many user
+    interface elements of Emacs and text properties of particular modes, such as
+    Org Mode.
+  - behaviour :: Leader keys are used and emphasized in the user interaction
+    philosophy rather than key chords; Evil is used and emphasized as a core
+    feature of the configuration; modal editing is provided.
+- Use Emacs Lisp to configure Emacs
+
+** Spacemacs
+** DOOM Emacs
+- Configure Emacs
+  - packages :: are configured with the Straight package, using a custom
+    =package!= macro.
+
+  - interface :: Major modes do not have a common sequence for toggles.
+
+        Layers like Org do not have toggles behind a leader key in the major mode
+        map. For instance, to toggle the in-line display of images in Org in Doom,
+        you press ~z i~, which was only discoverable for me using ~M-x~.
+        Spacemacs, as a configuration consumed by the community and configured by
+        it promotes discoverability by binding similar functionality behind
+        consistent keybindings. In Spacemacs, to toggle the in-line display of
+        images in Org you press ~SPC m T i~.
+
+        All mode-specific toggles are behind the ~SPC m T~ leader sequence,
+        regardless of more convenient or "accessible" bindings.
+
+  - behaviour :: Uses a combined shell script and Emacs Lisp file, ~doom.sh~, to
+        provide a command-line interface. This is useful during installation because
+        it can configure Emacs initialization behaviour using command-line options
+        to Emacs before executing the Emacs Lisp code contained in the file.
+
+- Uses Emacs as a command-line interpreter
+  The following seven lines of shell script are wonderful. They're dense, but they're wonderful.
+
+  =bin/doom.sh= /is/ a shell script. That is its mimetype. The shell will always
+  execute this file as a shell script, /but/ Emacs can execute it too… which is
+  bootstrapped by the script on line six.
+  
+  #+begin_src shell
+    #!/usr/bin/env sh
+    :; set -e # -*- mode: emacs-lisp; lexical-binding: t -*-
+    :; case "$EMACS" in *term*) EMACS=emacs ;; *) EMACS="${EMACS:-emacs}" ;; esac
+    :; $EMACS --version >/dev/null 2>&1 || { >&2 echo "Can't find emacs in your PATH"; exit 1; }
+    :; $EMACS --no-site-file --script "$0" -- "$@" || __DOOMCODE=$?
+    :; [ "${__DOOMCODE:-0}" -eq 128 ] && { sh "`$EMACS -Q --batch --eval '(princ temporary-file-directory)'`/doom.sh" "$0" "$@" && true; __DOOMCODE=$?; }
+    :; exit $__DOOMCODE
+  #+end_src
+
+  It can make more sense to look at the third line, the case statement, on its
+  own and formatted as it would be in a shell script not intended to be
+  interpreted by Emacs.
+
+  #+begin_src shell
+    case $EMACS in
+        *term*)
+            EMACS=emacs ;;
+        *)
+            EMACS="${EMACS:-emacs}" ;;
+    esac
+  #+end_src
+
+  This sets two different execution paths:
+  1. The variable EMACS is equal to =*term*=, then it is made equal to =emacs=.
+  2. The variable EMACS has any other value, then it is made equal to the
+     evaluation of the parameter expansion when EMACS [[https://unix.stackexchange.com/a/30472][is unset or NULLthe
+     parameter expansion when EMACS is unset or NULL]]. This is detailed in the
+     /BASH manual/ in the section [[info:bash#Shell Parameter Expansion][Shell Parameter Expansion]].
+  
+  Line 5, ~$EMACS --no-site-file --script "$0" -- "$@"~, calls =bin/doom.sh= as
+  a script for Emacs to interpret. That doesn't make sense from the seven lines
+  in this script, but it is obvious that the rest of the file is Emacs Lisp. The
+  script executes Emacs with ~--script "$0"~, which expands to the name of the
+  script =bin/doom.sh=. Emacs doesn't care about the file extension, as most
+  programs actually don't on UNIX. Emacs also understands the ~-- "$@"~ ,
+  which is expanded by the shell to ~-- install~ if the command line was
+  =~/.emacs.d/bin/doom install= (but usually called with =doom install= if you
+  have placed it on your PATH). For more information on Emacs scripts, read this
+  article on the [[https://www.emacswiki.org/emacs/EmacsScripts][Emacs Wiki]].
+
+  #+begin_src emacs-lisp
+    #!/usr/bin/env sh
+    :; set -e # -*- mode: emacs-lisp; lexical-binding: t -*-
+    :; case "$EMACS" in *term*) EMACS=emacs ;; *) EMACS="${EMACS:-emacs}" ;; esac
+    :; $EMACS --version >/dev/null 2>&1 || { >&2 echo "Can't find emacs in your PATH"; exit 1; }
+    :; $EMACS --no-site-file --script "$0" -- "$@" || __DOOMCODE=$?
+    :; [ "${__DOOMCODE:-0}" -eq 128 ] && { sh "`$EMACS -Q --batch --eval '(princ temporary-file-directory)'`/doom.sh" "$0" "$@" && true; __DOOMCODE=$?; }
+    :; exit $__DOOMCODE
+  #+end_src
+
+* Experimental literate Spacemacs configuration
+These are the highlights that are supported. They are only supported in source code modes, such as Emacs Lisp mode.
+
+#+begin_src emacs-lisp
+;; TODO/FIXME/NOTE/DEPRECATED/HACK/REVIEW
+#+end_src
+
+In addition to site (system) configuration files that are used for every user of
+a system if no user configuration files exist, Emacs will load two files
+in-order (depending on the version of Emacs): ~early-init.el~ and ~init.el~.
+
+The user configuration files can be in three locations (as of Emacs 28):
+- =$HOME/.config/emacs/= :: How does this one work?
+- =$HOME/.emacs.d/= :: The popular case.
+- =$HOME/= :: TODO: confirm this one.
+  
+  Spacemacs consumes a hidden file (hereafter dotfile): ~.spacemacs~ or
+  ~.init.el~ (depending on the location it resides in). This file is separate
+  from the user configuration file of Emacs, and shouldn't be confused for it.
+
+** How does Emacs load the Spacemacs configuration?
+Emacs first performs its standard initialization by calling the Emacs Lisp
+/form/ defined in the =top-level= variable. Emacs initialization is near
+instantaneous on modern systems, so unless the =top-level= variable has been
+customized (the system or user is using a modified Emacs) then the fundamental
+Emacs initialization has already occurred before Spacemacs' ~init.el~ is loaded!
+
+Emacs loads the Spacemacs ~init.el~ file from one of the supported user
+configuration directories when it is started normally (as =emacs %f=, without
+=--no-site-file=, =-q=, =-Q=, or other command-line options that change how
+Emacs starts.)
+
+Spacemacs' ~init.el~ contains the Emacs Lisp code that configures the
+fundamental and early aspects of Emacs initialization. Briefly, initialization
+is all of the commands and behaviours that Emacs executes and obeys before it
+will accept user input of commands, including exiting (Emacs may still be
+terminated by the system during initialization).
+
+*** Stages of Spacemacs initialization
+Spacemacs initialization can be understood in stages, though there are no actual
+stages or functional or imperative delineations during the initialization of
+Spacemacs. It proceeds linearly and runs completely without interruption.
+
+**** Early initialization
+Spacemacs' ~early-init.el~ is only used when the Emacs version is >= =27.1=.
+
+Following early initialization is normal initialization.
+
+**** Stage one: definition of Spacemacs preconditions
+Spacemacs' ~init.el~ stores the current time in a constant, changes the "number
+of bytes of consing between garbage collections," and then executes three Emacs
+Lisp files (sequentially):
+1. ~core/core-versions~,
+2. ~core/core-load-paths~, and
+3. ~core/core-dumper~.
+
+These files perform a number of setup tasks before the rest of Spacemacs'
+initialization continues. The details of what commands are run, what important
+variables and constants are defined, and the other things loading these files
+affects are detailed in the next sub-sections.
+
+Each file provides a /feature/, or a /package/, in Emacs terminology.
+
+The code for this stage of initialization is reproduced below. In any
+reproductions of =init.el= code, if comments are added or modified they include
+~`addition':~ as the first word of the comment.
+
+#+begin_src emacs-lisp
+  ;; `addition': FIXME: The minimum version of Emacs that Spacemacs supports is
+  ;; `27.1', so is this comment still necessary? It handles Emacs 25.
+  ;; Without this comment emacs25 adds (package-initialize) here
+  ;; (package-initialize)
+
+  ;; Avoid garbage collection during startup.
+  ;; see `SPC h . dotspacemacs-gc-cons' for more info
+  (defconst emacs-start-time (current-time))
+  (setq gc-cons-threshold 402653184 gc-cons-percentage 0.6)
+  (load (concat (file-name-directory load-file-name)
+                "core/core-versions")
+        nil (not init-file-debug))
+  (load (concat (file-name-directory load-file-name)
+                "core/core-load-paths")
+        nil (not init-file-debug))
+  (load (concat spacemacs-core-directory "core-dumper")
+        nil (not init-file-debug))
+#+end_src
+
+***** Core versions
+[[file:~/.emacs.d/core/core-versions.el][=Versions=]] is quite short, and may be deprecated to simplify the initialization
+file of Spacemacs.
+
+Two variables are defined in versions:
+- ~spacemacs-version~ :: the "Spacemacs version"; set to ~0.999.0~ in the
+  =develop= branch.
+- ~spacemacs-emacs-min-versio~ n :: the "minimal version of Emacs" Spacemacs
+  supports; set to ~27.1~ in the =develop= branch.
+  
+***** Core load paths
+[[file:~/.emacs.d/core/core-load-paths.el][=Load Paths=]] defines fifteen (15) constants, and one variable, creates a cache
+directory for Spacemacs (unless it already exists), defines the default value of
+the /pcache/ directory to be the =pcache= subdirectory of the Spacemacs cache
+directory, adds the ~spacemacs-core-directory~ to the load path, as well as its
+subdirectories =libs=, =libs/spacemacs-theme=, and =libs/forks=, and finally
+adds the =Spacemacs Theme= core subdirectory to the ~custom-theme-load-path~.
+
+=Load Paths= defines a directory tree, so other core functions, packages, and
+layers of Spacemacs can operate upon and within the structure of Spacemacs. The
+directory tree that is defined in =Load Paths= is rendered below. The rendered
+tree assumes the ~User Emacs Directory~ (which is the value of the ~Spacemacs
+Start Directory~), is =$HOME/.emacs.d=, then the directory tree below visualizes
+it.
+
+The first constant and the only variable defined are shown above the root of the
+tree with Emacs Lisp to emphasize that all the other paths are dependent upon
+these two definitions, so the root of the tree is the result of the evaluation
+of the definition of the ~spacemacs-start-directory~ variable.
+
+#+begin_export html
+<pre><font color="#9B6BDF"><b>(<font color="#ff79c6">defconst</font> user-home-directory
+    (</b></font><b>expand-file-name</b> <font color="#9B6BDF"><b>"~/"))</b></font>
+<font color="#9B6BDF"><b>(<font color="#ff79c6">defvar</font> spacemacs-start-directory
+    (<font color="#FFFFFF">expand-file-name</font> user-emacs-directory)) ⟹ <font color="#FFFFFF">;; By default</font>
+~/.emacs.d</b></font>
+├── <font color="#9B6BDF"><b>assets</b></font>
+├── <font color="#9B6BDF"><b>.cache</b></font>
+│   └── <font color="#9B6BDF"><b>auto-save</b></font>
+├── <font color="#9B6BDF"><b>core</b></font>
+│   ├── <font color="#9B6BDF"><b>banners</b></font>
+│   │   └── <font color="#9B6BDF"><b>img</b></font> <b>;; Not a defined constant or variable</b>
+│   │       ├── <font color="#E64747"><b>gplv3.png</b></font>
+│   │       ├── <font color="#E64747"><b>spacemacs-badge.png</b></font>
+│   │       └── <font color="#E64747"><b>spacemacs.png</b></font>
+│   └── <font color="#9B6BDF"><b>info</b></font>
+│       └── <font color="#9B6BDF"><b>release-notes</b></font>
+├── <font color="#9B6BDF"><b>doc</b></font>
+├── <font color="#9B6BDF"><b>news</b></font>
+├── <font color="#9B6BDF"><b>private</b></font>
+└── <font color="#9B6BDF"><b>tests</b></font>
+</pre>
+#+end_export
+
+The directory tree is only defined for reference, it is not created during
+initialization. The directory tree already exists when Spacemacs is cloned from
+GitHub. To view the full directory tree in the newly cloned state, clone the
+Spacemacs repository to a temporary folder and run the command ~tree -d~ upon
+that directory.
+
+Neither the cache directory or its pcache subdirectory exist in the cloned
+Spacemacs repository, but they must be created successfully and accessible for
+certain Spacemacs functionalities, so handling errors must be done carefully so
+that initialization and normal function proceed properly.
+
+****** Permissions
+UNIX® and Linux® each provide permission and security systems, as such GNU
+operating systems depend on the site-wide and user-specific configuration of the
+security systems that are present.
+
+SELinux and the fundamental permissions of Linux® are important to understand,
+especially for maintainers of Spacemacs. A small overview of permissions
+relevant to Spacemacs is given here as a reference and guide to permissions that
+affect the user- and developer-experience of Spacemacs.
+
+******* Handling permission errors
+Knowing if a file is readable by the user does not tell us if it is writable, so
+=file-readable-p= must be used before or at the same time as =file-writable-p=.
+
+#+begin_src emacs-lisp
+  (unless (and (file-writable-p "/root") (file-readable-p "/root"))
+    (message "You are not root."))
+#+end_src
+
+#+RESULTS:
+: You are not root.
+
+The writable predicate returns =nil= if the file cannot be written to by the
+user, and the readable predicate returns =nil= if the user cannot read from the
+file because of a permission error /or/ the file doesn't exist. To check if the
+file exists, and is both readable and writable the two predicates must be used
+together: =(and (file-writable-p directory) (file-readable-p directory)=.
+
+Handling more than a few files this way is tedious and prone to error, so
+checks for a user or system file tree should be done during initialization, and
+take advantage of POSIX, SUS, and SELinux permissions specifications.
+
+Refactoring =load-paths= included a change from simply checking that the
+Spacemacs cache directory before creating it to the following.
+
+#+begin_src emacs-lisp
+  ;; TODO: Should also catch any IO error such as permission error (Apr 25 2021 Lucius)
+  (unless (and (file-readable-p spacemacs-cache-directory)
+               (file-writable-p spacemacs-cache-directory))
+    (condition-case-unless-debug nil
+        (make-directory spacemacs-cache-directory)
+      (error nil)))
+#+end_src
+
+****** Input and output errors
+Successful data storage is not something that needs to be handled often, but
+when it does it should conform rigidly to best practices. There are numerous
+guides on verifying file integrity, and some may be applicable to Emacs Lisp,
+but following a Common Lisp guide may be better (due to greater general
+programming facilities).
+
+***** TODO Core dumper
+[[file:~/.emacs.d/core/core-dumper.el][=Dumper=]] 
+
+**** Stage two: listing of Spacemacs' compiled files
+=core-compilation= and =spacemacs--last-emacs-version-file= are loaded in turn,
+and when the version of Emacs has changed or the compiled core files are older
+than the files they are compiled from the core files are /removed/, and the last
+used version of Emacs is updated to the currently used version of Emacs.
+
+:loadFilesAndMessage:
+When loading [[file:~/.emacs.d/core/core-compilation.el][=Compilation=]] and =spacemacs--last-emacs-version-file=, messages
+are printed at the start and end of the file load because the default value of
+~init-file-debug~ is nil, and the opposite boolean value of is used by
+Spacemacs.
+:END:
+
+The code for this stage of initialization is reproduced below. This ensures that
+core files are current and load fast.
+
+#+begin_src emacs-lisp
+  ;; `addition': NOTE: if byte-compiled files are older than the core files they are
+  ;; compiled from, is the younger file is loaded?
+  ;; `additon': TODO: if byte-compiled files are stale, byte-compile them in a separate process!
+
+  ;; `addition': Remove (`spacemacs//remove-byte-compiled-files-in-dir') compiled core files
+  ;; if they become stale or Emacs version has changed.
+  (load (concat spacemacs-core-directory "core-compilation")
+        nil (not init-file-debug))
+  (load spacemacs--last-emacs-version-file t (not init-file-debug))
+  (when (or (not (string= spacemacs--last-emacs-version emacs-version))
+            (spacemacs//dir-contains-stale-byte-compiled-files-p
+             spacemacs-core-directory))
+    (spacemacs//remove-byte-compiled-files-in-dir spacemacs-core-directory))
+  ;; Update saved Emacs version.
+  (unless (string= spacemacs--last-emacs-version emacs-version)
+    (spacemacs//update-last-emacs-version))
+#+end_src
+
+***** Core compilation
+[[file:~/.emacs.d/core/core-compilation.el][=Compilation]]= does a few things in turn: requires =cl-lib= and =subr-x=; ensures
+that Spacemacs can know what was the last version of Emacs it was run with by
+defining a variable and constant for that which are consumed by the function
+~spacemacs//update-last-emacs-version~ (this function is defined, but not
+called, when =Compilation= is loaded); defines several private functions related
+to compilation (~ensure-byte-compilation~, ~remove-byte-compiled-files-in-dir~,
+and ~dir-contains-stale-byte-compiled-files-p~).
+
+**** Stage three: =Spacemacs Init=
+If the current version of Emacs is not older than the minimum version of Emacs
+that Spacemacs supports, the core =Spacemacs= feature is loaded, the ~load path~
+variable is restored from a dump (if it exists; see the
+~spacemcas/dump-restore-load-path~ function), /the/ ".lock file" is loaded
+silently (except in debug mode; =~/.emacs.d/.lock=), and ~spacemacs/init~ is
+called.
+
+***** The ~spacemacs/init~ function
+The core =Spacemacs= feature is a large file, and it loads most of the features
+of Spacemacs that have not already been loaded. Detailing all of the features
+that are loaded would not be helpful at the moment, so see [[file:~/.emacs.d/core/core-spacemacs.el][=core-spacemacs.el=]]
+instead.
+
+When there are backports, the core =Emacs Backports= feature is used to provide
+them. At present, the feature doesn't include any backports and is a placeholder
+feature.
+
+Several features are required by the core =Spacemacs= feature, as mentioned in
+the opening paragraph. The core features =Env=, which provides setup for
+environment variables, =Dotspacemacs=, which provides
+***** Variables
+Five variables are defined before the function definitions in this core feature.
+
+1. ~spacemacs-post-user-config-hook~ =nil=
+2. ~spacemacs-post-user-config-hook-run~ =nil=
+3. ~spacemacs-scratch-mode-hook~ =nil=
+4. ~spacemacs--default-mode-line~ =mode-line-format=
+5. ~spacemacs-initialized~ =nil=
+
+The first, second, and fifth variables are the most important as they configure
+the behaviour of Spacemacs initialization. Whether the post-user config hook has
+run is important to know, and whether Spacemacs is fully initialized is
+important to know.
+
+**** TODO: Stage four: post-=Spacemacs Init=
+This section will detail functioning of Spacemacs initializaiton /after/ =spacemacs/init= has run.
+
+** How does Spacemacs load the user configuration?

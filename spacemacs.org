@@ -1,0 +1,899 @@
+:PROPERTIES:
+:EXPORT_TITLE: Spacemacs Configuration
+:END:
+#+TITLE: Spacemacs configuration
+#+TAGS: spacemacs|configuration|literate|documentation|beginner|startup
+
+* TODO [#C] Foreword
+This document is meant to be a genuinely /literate/ program. It is not. The
+purpose of the document is to concisely document and describe the
+/initialization/ settings and /user initialization/ program, and the /layer
+configuration/ settings and programs and /user configuration/ of Spacemacs.
+
+To achieve the purpose of this document, it does not contain the entire literate
+program. The fundamental operations of this program are contained elsewhere,
+mostly in =core-configuration-layer.el= and =core-spacemacs.el=.
+
+This document contains only the prose necessary to introduce this new core
+feature, the supported literate configuration, and the /literate/ part of the
+configuration program.
+
+** TODO User guide
+** TODO Developer manual
+The literate configuration is /literate/, so non-trivial code contributions
+related to it must also be literate. A trivial contribution is a bug-fix,
+spelling correction, or other Emacs Lisp or /noweb/ improvement.
+
+If you aren't convinced that literate programming is worthwhile, do not use this
+configuration. Use the bog-standard =.spacemacs= configuration file. This
+feature is in alpha-testing and is experimental.
+
+It is recommended to listen to Tim Daly's presentation called /Literate
+Programming in the Large/, given at Write the Docs. You may also enjoy watching
+Daly install a literate version of Clojure. Both are recommended to remind
+yourself that literate programming is not about Org or Babel. It is more about
+=noweb=, and writing technical documentation than it is programming: you are
+communicating to the human readers of your program what you are instructing
+/their/ computer to do, you are not communicating to the Emacs Lisp reader (the
+interpreter).
+
+*** dotspacemacs/layers collator
+The following source block includes the syntax necessary to define the
+=dotspacemacs/layers= function, which sets the default values for some values
+which may vary (venerable /variables/). It is not obvious to the average user of
+Spacemacs, one who does not read the source code that comprises what defines
+Spacemacs features, why their configuration is an Emacs Lisp function.
+
+It is also difficult to read and maintain a =.spacemacs= file after some time,
+as the regions of commentary grow and the documentation for an option ages and
+or is not fully documented.
+
+As such, the noweb references in the Emacs Lisp source block below include
+/only/ what the user needs to concern themselves with, primarily, what values
+they would like to define. If a value for a variable is always a list, such as
+the list of configuration layers to load (=dotspacemacs/layers=) then the list
+syntax is extracted from the literate portion of the program and given a place
+in the program that collates the atoms of that list.
+
+#+begin_src emacs-lisp :noweb yes
+  (defun literate-dotspacemacs/layers ()
+    "Layer configuration:
+  This function should only modify configuration layer settings."
+    (setq-default
+     dotspacemacs-distribution <<dotspacemacs-distribution>>
+     dotspacemacs-enable-lazy-installation <<dotspacemacs-enable-lazy-installation>>
+     dotspacemacs-ask-for-lazy-installation <<dotspacemacs-ask-for-lazy-installation>>
+
+     dotspacemacs-configuration-layer-path '(
+         <<dotspacemacs-configuration-layer-path>>
+         )
+
+     dotspacemacs-configuration-layers '(
+         <<dotspacemacs-configuration-layers>>
+         )
+
+     dotspacemacs-additional-packages '(
+         <<dotspacemacs-additional-packages>>
+         )
+
+     dotspacemacs-frozen-packages '(
+         <<dotspacemacs-frozen-packages>>
+         )
+
+     dotspacemacs-excluded-packages '(
+         <<dotspacemacs-excluded-packages>>
+         )
+
+     dotspacemacs-install-packages <<dotspacemacs-install-packages>>
+     ))
+#+end_src
+
+The variables which are lists must have the noweb reference on their own line,
+otherwise the preceeding syntax is interpreted as a comment and the expanded
+reference becomes a multi-line comment.
+
+#+begin_example emacs-lisp
+  dotspacemacs-configuration-layer-path '("~/code/layers/")
+  dotspacemacs-configuration-layer-path '("~/anti-code/layers/")
+  dotspacemacs-configuration-layer-path '("~/old-code/layers/")
+  dotspacemacs-configuration-layer-path '("~/bad-code/layers/")
+  dotspacemacs-configuration-layer-path '("~/buggy-code/layers/")
+#+end_example
+
+Whereas the "correct", albeit inconvenient and not ideal, noweb reference
+syntax, would expand properly. The whitespace below does not reflect the
+whitespace of the weaved program, and the weaved program will not be exampled to
+spare your palette.
+
+#+begin_example emacs-lisp
+  dotspacemacs-configuration-layer-path '("~/code/layers/"
+                                          "~/anti-code/layers/"
+                                          "~/old-code/layers/"
+                                          "~/bad-code/layers/"
+                                          "~/buggy-code/layers/")
+#+end_example
+
+* TODO [#B] Initialization
+:PROPERTIES:
+:header-args:emacs-lisp :noweb-ref dotspacemacs/init
+:END:
+Essential settings of Spacemacs which take effect before configuration layer
+initialization. It should only modify the values of Spacemacs settings.
+
+The following items are an exhaustive list of all configurable aspects of the
+initialization process of Spacemacs.
+
+NOTE: There are ninety-seven (97) initialization variables.
+
+- Enable Emacs portable dumper? :: boolean
+  If non-nil then enable support for the portable dumper. You'll need to compile
+  Emacs 27 from source following the instructions in file EXPERIMENTAL.org at to
+  root of the git repository.
+
+  WARNING: pdumper does not work with Native Compilation, so it's disabled
+  regardless of the following setting when native compilation is in effect.
+
+  #+name: dotspacemacs-enable-emacs-pdumper
+  #+begin_src emacs-lisp
+  nil
+  #+end_src
+- Emacs portable dumper executable name :: string
+  #+name: dotspacemacs-emacs-pdumper-executable-file
+  #+begin_src emacs-lisp
+    "emacs"
+  #+end_src
+- Emacs portable dumper dump file name format :: symbolic expression
+  Name of the Spacemacs dump file. This is the file will be created by the
+  portable dumper in the cache directory under dumps sub-directory.
+  To load it when starting Emacs add the parameter `--dump-file'
+  when invoking Emacs 27.1 executable on the command line, for instance:
+  ~./emacs --dump-file=$HOME/.emacs.d/.cache/dumps/spacemacs-27.1.pdmp~
+
+  #+name: dotspacemacs-emacs-dumper-dump-file
+  #+begin_src emacs-lisp
+    (format "spacemacs-%s.pdmp" emacs-version)
+  #+end_src
+- ELPA HTTPS preference :: boolean
+  If non-nil ELPA repositories are contacted via HTTPS whenever it's possible.
+  Set it to =nil= if you have no way to use HTTPS in your environment, otherwise
+  it is strongly recommended to let it set to =t=. This variable has no effect
+  if Emacs is launched with the parameter =--insecure= which forces the value of
+  this variable to nil.
+
+  #+name: dotspacemacs-elpa-https
+  #+begin_src emacs-lisp
+    t
+  #+end_src
+- ELPA timeout :: integer
+  Maximum allowed time in seconds to contact an ELPA repository.
+
+  #+name: dotspacemacs-elpa-timeout
+  #+begin_src emacs-lisp
+    5
+  #+end_src
+- Emacs garbage collection threshold :: list
+  #+name: dotspacemacs-gc-cons
+  #+begin_src emacs-lisp
+    '(100000000 0.1)
+  #+end_src
+- Read process output maximum :: integer
+  #+name: dotspacemacs-read-process-output-max
+  #+begin_src emacs-lisp
+    (* 1024 1024)
+  #+end_src
+- Enable Spacelpa? :: boolean
+  #+name: dotspacemacs-use-spacelpa
+  #+begin_src emacs-lisp
+    nil
+  #+end_src
+- Verify Spacelpa archives :: boolean
+  #+name: dotspacemacs-verify-spacelpa-archives
+  #+begin_src emacs-lisp
+    t
+  #+end_src
+- Check for updates? :: boolean
+  #+name: dotspacemacs-check-for-update
+  #+begin_src emacs-lisp
+    nil
+  #+end_src
+- Elpa subdirectory :: symbolic expression
+  #+name: dotspacemacs-elpa-subdirectory
+  #+begin_src emacs-lisp
+    'emacs-version
+  #+end_src
+- Editing style :: symbol
+  #+name: dotspacemacs-editing-style
+  #+begin_src emacs-lisp
+    'vim
+  #+end_src
+- Startup buffer show version? :: boolean
+  #+name: dotspacemacs-startup-buffer-show-version
+  #+begin_src emacs-lisp
+    t
+  #+end_src
+- Startup buffer banner :: symbol
+  #+name: dotspacemacs-startup-banner
+  #+begin_src emacs-lisp
+    'official
+  #+end_src
+- Startup buffer lists :: alist? plist?
+  #+name: dotspacemacs-startup-lists
+  #+begin_src emacs-lisp
+    '((recents . 10) (recents-by-project . (7 . 5)) (todos . 10))
+  #+end_src
+- Startup buffere responsive :: boolean
+  #+name: dotspacemacs-startup-buffer-responsive
+  #+begin_src emacs-lisp
+    t
+  #+end_src
+- Startup buffer show numbers? :: boolean
+  #+name: dotspacemacs-show-startup-list-numbers
+  #+begin_src emacs-lisp
+    t
+  #+end_src
+- Startup buffer keypress delay :: float
+  #+name: dotspacemacs-startup-buffer-multi-digit-delay
+  #+begin_src emacs-lisp
+    0.4
+  #+end_src
+- Startup buffer show icons? :: boolean
+  #+name: dotspacemacs-startup-buffer-show-icons
+  #+begin_src emacs-lisp
+    t
+  #+end_src
+- New empty buffer mode :: symbol
+  #+name: dotspacemacs-new-empty-buffer-major-mode
+  #+begin_src emacs-lisp
+    'text-mode
+  #+end_src
+- Scratch buffer mode :: symbol
+  #+name: dotspacemacs-scratch-mode
+  #+begin_src emacs-lisp
+    'emacs-lisp-mode
+  #+end_src
+- Scratch buffer persistent? :: boolean
+  #+name: dotspacemacs-scratch-buffer-persistent
+  #+begin_src emacs-lisp
+    t
+  #+end_src
+- Scratch buffer unkillable? :: boolean
+  #+name: dotspacemacs-scratch-buffer-unkillable
+  #+begin_src emacs-lisp
+    t
+  #+end_src
+- Scratch buffer initial text :: symbolic expression
+  #+name: dotspacemacs-initial-scratch-message
+  #+begin_src emacs-lisp
+    (mapconcat (lambda (element)                                       ;; "Welcome to Spacemacs!". (default nil)
+                 (concat ";; " element))
+               '("Use this buffer for persistent scratch evaluation."
+                 "Use a new empty buffer (SPC b N) for scratch text.")
+               "\n")
+  #+end_src
+- Spacemacs theme priority list :: list
+  #+name: dotspacemacs-themes
+  #+begin_src emacs-lisp
+    '(doom-tokyo-night
+      dracula                                      ;; List of themes, the first of the list is loaded
+      sanityinc-tomorrow-night                     ;; when spacemacs starts. Press `SPC T n' to cycle
+      spacemacs-dark                               ;; to the next theme in the list (works great with
+      modus-operandi                               ;; 2 themes variants, one dark and one light).
+      modus-vivendi)
+  #+end_src
+- Spacemacs mode line theme :: list
+  #+name: dotspacemacs-mode-line-theme
+  #+begin_src emacs-lisp
+    '(spacemacs :separator wave :separator-scale 1.7)
+  #+end_src
+- Spacemacs colourize cursor according to state :: boolean
+  #+name: dotspacemacs-colorize-cursor-according-to-state
+  #+begin_src emacs-lisp
+    t
+  #+end_src
+- Spacemacs default font :: list
+  #+name: dotspacemacs-default-font
+  #+begin_src emacs-lisp
+    '(("agave Nerd Font Mono"
+       :size 11.0
+       :weight normal
+       :width normal)
+
+      ("Source Code Pro"
+       :size 10.0
+       :weight normal
+       :width normal))
+  #+end_src
+- Spacemcas leader key :: string
+  #+name: dotspacemacs-leader-key
+  #+begin_src emacs-lisp
+    "SPC"
+  #+end_src
+- Spacemacs Emacs command key :: string
+  #+name: dotspacemacs-emacs-command-key
+  #+begin_src emacs-lisp
+    "SPC"
+  #+end_src
+- Spacemcas Ex command key :: string
+  #+name: dotspacemacs-ex-command-key
+  #+begin_src emacs-lisp
+    ":"
+  #+end_src
+- Spacemcas Emacs leader key :: string
+  #+name: dotspacemacs-emacs-leader-key
+  #+begin_src emacs-lisp
+    "M-m"
+  #+end_src
+- Spacemcas major mode leader key :: string
+  #+name: dotspacemacs-major-mode-leader-key
+  #+begin_src emacs-lisp
+    ","
+  #+end_src
+- Spacemcas major mode Emacs leader key :: string
+  #+name: dotspacemacs-major-mode-emacs-leader-key
+  #+begin_src emacs-lisp
+    (if window-system "<M-return>" "C-M-m")
+  #+end_src
+- Spacemacs GUI distinguish tab? :: symbol
+  #+name: dotspacemacs-distinguish-gui-tab
+  #+begin_src emacs-lisp
+    nil
+  #+end_src
+- Spacemacs default layout name :: string
+  #+name: dotspacemacs-default-layout-name
+  #+begin_src emacs-lisp
+    "Default"
+  #+end_src
+- Spacemacs display default layout name in mode line :: boolean
+  #+name: dotspacemacs-display-default-layout
+  #+begin_src emacs-lisp
+    nil
+  #+end_src
+- Spacemacs auto resume layouts :: boolean
+  #+name: dotspacemacs-auto-resume-layouts
+  #+begin_src emacs-lisp
+    nil
+  #+end_src
+- Spacemcas auto generate layout names :: boolean
+  #+name: dotspacemacs-auto-generate-layout-names
+  #+begin_src emacs-lisp
+    nil
+  #+end_src
+- Spacemcas large file size :: integer
+  #+name: dotspacemacs-large-file-size
+  #+begin_src emacs-lisp
+    1
+  #+end_src
+- Spacemacs auto save file location :: symbol
+  #+name: dotspacemacs-auto-save-file-location
+  #+begin_src emacs-lisp
+    'cache
+  #+end_src
+- Spacemcas rollback slots :: integer
+  #+name: dotspacemacs-max-rollback-slots
+  #+begin_src emacs-lisp
+    5
+  #+end_src
+- Spacemacs enable paste transient state :: boolean
+  #+name: dotspacemacs-enable-paste-transient-state
+  #+begin_src emacs-lisp
+    nil
+  #+end_src
+- Spacemacs which key delay :: float
+  #+name: dotspacemacs-which-key-delay
+  #+begin_src emacs-lisp
+    0.100
+  #+end_src
+- Spacemacs which key position :: symbol
+  #+name: dotspacemacs-which-key-position
+  #+begin_src emacs-lisp
+    'bottom
+  #+end_src
+- Spacemacs switch to buffer prefers purpose :: boolean
+  #+name: dotspacemacs-switch-to-buffer-prefers-purpose
+  #+begin_src emacs-lisp
+    nil
+  #+end_src
+- Spacemacs loading progress bar :: boolean
+  #+name: dotspacemacs-loading-progress-bar
+  #+begin_src emacs-lisp
+    t
+  #+end_src
+- Spacemacs fullscreen upon startup :: boolean
+  #+name: dotspacemacs-fullscreen-at-startup
+  #+begin_src emacs-lisp
+    nil
+  #+end_src
+- Spacemacs fullscreen use non-native fullscreen :: boolean
+  #+name: dotspacemacs-fullscreen-use-non-native
+  #+begin_src emacs-lisp
+    nil
+  #+end_src
+- Spacemcas maximized upon startup :: boolean
+  #+name: dotspacemacs-maximized-at-startup
+  #+begin_src emacs-lisp
+    nil
+  #+end_src
+- Spacemacs undecorated upon startup :: boolean
+  #+name: dotspacemacs-undecorated-at-startup
+  #+begin_src emacs-lisp
+    nil
+  #+end_src
+- Spacemcas active transparency :: integer
+  #+name: dotspacemacs-active-transparency
+  #+begin_src emacs-lisp
+    90
+  #+end_src
+- Spacemcas inactive transparency :: integer
+  #+name: dotspacemacs-inactive-transparency
+  #+begin_src emacs-lisp
+    90
+  #+end_src
+- Spacemacs show transient state title :: boolean
+  #+name: dotspacemacs-show-transient-state-title
+  #+begin_src emacs-lisp
+    t
+  #+end_src
+- Spacemacs show transient state colour guide :: boolean
+  #+name: dotspacemacs-show-transient-state-color-guide
+  #+begin_src emacs-lisp
+    t
+  #+end_src
+- Spacemcas mode line unicode symbols? :: symbol
+  #+name: dotspacemacs-mode-line-unicode-symbols
+  #+begin_src emacs-lisp
+    'display-graphic-p
+  #+end_src
+- Spacemcas smooth scrolling :: boolean
+  #+name: dotspacemacs-smooth-scrolling
+  #+begin_src emacs-lisp
+    t
+  #+end_src
+- Spacemacs scroll bar while scrolling :: boolean
+  #+name: dotspacemacs-scroll-bar-while-scrolling
+  #+begin_src emacs-lisp
+    nil
+  #+end_src
+- Spacemacs line numbers :: symbolic expression
+  #+name: dotspacemacs-line-numbers
+  #+begin_src emacs-lisp
+    nil
+  #+end_src
+- Spacemacs folding method :: symbol
+  #+name: dotspacemacs-folding-method
+  #+begin_src emacs-lisp
+    'evil
+  #+end_src
+- Spacemacs Smart Parentheses strict mode? :: boolean
+  #+name: dotspacemacs-smartparens-strict-mode
+  #+begin_src emacs-lisp
+    nil
+  #+end_src
+- Spacemacs activate smart parentheses mode? :: boolean
+  #+name: dotspacemacs-activate-smartparens-mode
+  #+begin_src emacs-lisp
+    t
+  #+end_src
+- Spacemacs smart closing parentheses? :: boolean
+  #+name: dotspacemacs-smart-closing-parenthesis
+  #+begin_src emacs-lisp
+    nil
+  #+end_src
+- Spacemacs highlight delimiters :: boolean
+  #+name: dotspacemacs-highlight-delimiters
+  #+begin_src emacs-lisp
+    'all
+  #+end_src
+- Spacemacs enable server :: boolean
+  #+name: dotspacemacs-enable-server
+  #+begin_src emacs-lisp
+    nil
+  #+end_src
+- Spacemacs sever socket directory :: string
+  #+name: dotspacemacs-server-socket-dir
+  #+begin_src emacs-lisp
+    nil
+  #+end_src
+- Spacemacs persistent server :: boolean
+  #+name: dotspacemacs-persistent-server
+  #+begin_src emacs-lisp
+    nil
+  #+end_src
+- Spacemacs search tools :: list
+  #+name: dotspacemacs-search-tools
+  #+begin_src emacs-lisp
+    '("rg" "ag" "pt" "ack" "grep")
+  #+end_src
+- Spacemacs frame title format :: format string
+  #+name: dotspacemacs-frame-title-format
+  #+begin_src emacs-lisp
+    "%I@%S"
+  #+end_src
+- Spacemacs icon title format :: format string
+  #+name: dotspacemacs-icon-title-format
+  #+begin_src emacs-lisp
+    nil
+  #+end_src
+- Spacemacs show trailing whitespace :: boolean
+  #+name: dotspacemacs-show-trailing-whitespace
+  #+begin_src emacs-lisp
+    t
+  #+end_src
+- Spacemacs whitespace cleanup automatically? :: boolean
+  #+name: dotspacemacs-whitespace-cleanup
+  #+begin_src emacs-lisp
+    nil
+  #+end_src
+- Spacemacs use clean a indent mode? :: boolean
+  #+name: dotspacemacs-use-clean-aindent-mode
+  #+begin_src emacs-lisp
+    t
+  #+end_src
+- Spacemacs use SPC as y :: boolean
+  #+name: dotspacemacs-use-SPC-as-y
+  #+begin_src emacs-lisp
+    nil
+  #+end_src
+- Spacemacs swap number row :: boolean
+  #+name: dotspacemacs-swap-number-row
+  #+begin_src emacs-lisp
+    nil
+  #+end_src
+- Spacemacs zone out when idle :: integer or nil
+  #+name: dotspacemacs-zone-out-when-idle
+  #+begin_src emacs-lisp
+    nil
+  #+end_src
+- Spacemacs pretty docs :: boolean
+  #+name: dotspacemacs-pretty-docs
+  #+begin_src emacs-lisp
+    t
+  #+end_src
+- Spacemacs home shorten agenda source :: boolean
+  #+name: dotspacemacs-home-shorten-agenda-source
+  #+begin_src emacs-lisp
+    nil
+  #+end_src
+- Spacemacs enable byte compilation :: boolean
+  #+name: dotspacemacs-byte-compile
+  #+begin_src emacs-lisp
+    nil
+  #+end_src
+
+* TODO [#A] Layer configuration
+:PROPERTIES:
+:header-args:emacs-lisp :noweb-ref dotspacemacs-layer-configuration
+:END:
+
+Layers are the ~entity~ that compose Spacemacs. Layers configure Emacs
+behaviour, packages, and functionality. One aspect of Emacs behaviour that
+layers configure is how Emacs responds to opening a file of a particular MIME
+type; lazy layer-installation methods specify this behaviour.
+
+TODO: ensure each item in /Layer Configuration/ is a verb.
+Each setting has a short and a long description. You should read this section as
+a set of things to do, such as selecting, specifying, enumerating, et cetera.
+Each configuration item is a /verb/.
+
+- Select a base layer :: as the foundation of Spacemacs.
+
+  FIXME: is the first paragraph true?
+  After Spacemacs' initialization a foundation layer is loaded, which configures
+  many other behaviours including the set of layers that are always loaded at
+  startup, regardless of user configuration.
+
+  The =spacemacs-base= layer is a minimalist approach to Spacemacs, and contains
+  only the core packages. It is a good starting point if you want to make
+  something completely new from the core of Spacemacs. This distribution should
+  not be used for a new standalone Spacemacs installation unless you have very
+  good reasons for doing so.
+
+  *NOTE:* The user configuration may still exclude a layer, but it will be unloaded
+  after it is loaded and performs its configuration tasks, but will then be
+  unavailable.
+
+  #+begin_example emacs-lisp
+    ;; 'spacemacs-base
+    'spacemacs
+  #+end_example
+
+  #+name: dotspacemacs-distribution
+  #+begin_src emacs-lisp
+    'spacemacs
+  #+end_src
+- Select a lazy layer–installation method :: to configure what layers are installed and when they are installed.
+
+  Lazy installation of layers allows layers to be installed on-demand, rather
+  than upon startup. When a MIME type supported by or configured by a layer is
+  opened for the first time, Spacemacs will create a prompt to install the layer
+  if it is not already installed.
+
+  Lazy layer installation follows three different methods: =all=, =unused=, or
+  =nil=.
+
+  If the setting is =all= or =unused=, Spacemacs will prompt the user. The =all=
+  method will prompt to install all layers supporting lazy installation,
+  including layers specified in the /dotspacemacs-configuration-layers/. The
+  =unused= method only prompts for layers not specified in
+  /dotspacemacs-configuration-layers/.
+
+  If the setting is =nil=, Spacemacs will not prompt the user to install a layer
+  when a supported or configured MIME type is opened, and only layers listed in
+  /dotspacemacs-configuration-layers/ will be installed, and all the specified layers
+  will be installed upon startup if not already installed.
+
+  TODO: create the Lazy Layers document.
+  *NOTE:* only some layers support lazy installation. To see a list of layers
+  that support lazy installation, view the /lazy-layers/ document.
+
+  #+begin_example emacs-lisp
+    ;; 'all
+    ;; 'nil
+    'unused
+  #+end_example
+
+  #+name: dotspacemacs-enable-lazy-installation
+  #+begin_src emacs-lisp
+    'unused
+  #+end_src
+- Provide confirmation for lazy layer-installation :: when layers are lazy–installed
+
+  If non-nil a confirmation prompt is displayed when a layer can be
+  lazy-installed.
+
+  #+begin_example emacs-lisp
+    ;; nil
+    t
+  #+end_example
+
+  #+name: dotspacemacs-ask-for-lazy-installation
+  #+begin_src emacs-lisp
+    t
+  #+end_src
+- List additional configuration layer paths :: to use layers outside the Spacemacs directory.
+
+  Additional paths that contain configuration layers may be specified here.
+  Paths must have a trailing slash.
+
+  #+BEGIN_EXAMPLE emacs-lisp
+    "~/code/development-layers/"
+  #+END_EXAMPLE
+
+  #+name: dotspacemacs-configuration-layer-path
+  #+BEGIN_SRC emacs-lisp
+  #+END_SRC
+- List configuration layers to load :: to extend the functionality of Spacemacs.
+  TODO: Vastly improve the description here.
+  List of configuration layers to load.
+  
+  Example of useful layers you may want to use right away. Uncomment some layer
+  names and press ~SPC f e R~ (Vim style) or ~M-m f e R~ (Emacs style) to
+  install them. All known layers can be listed by pressing ~SPC h l~, and from
+  the completion interface that opens you can view the documentation of each
+  layer.
+
+  #+begin_example emacs-lisp
+  ;; auto-completion
+  ;; better-defaults
+  emacs-lisp
+  ;; git
+  helm
+  ;; lsp
+  ;; markdown
+  multiple-cursors
+  ;; org
+  ;; (shell :variables
+  ;;        shell-default-height 30
+  ;;        shell-default-position 'bottom)
+  ;; spell-checking
+  ;; syntax-checking
+  ;; version-control
+  treemacs
+  #+end_example
+
+  #+name: dotspacemacs-configuration-layers
+  #+begin_src emacs-lisp
+    (auto-completion :variables auto-completion-enable-help-tooltip t)
+
+    better-defaults
+    csv
+    emacs-lisp
+
+    (ess :variables
+         ess-r-backend 'eglot
+         ess-use-company t
+         markdown-code-block-braces t
+         ;; This variable is set in User init, as it must be set before ESS is loaded.
+         ;; polymode-lsp-integration nil
+
+         :config
+         (add-to-list 'auto-mode-alist '("\\.[rR]md\\'" . poly-markdown+r-mode)))
+
+    (git :variables
+         git-enable-magit-todos-plugin t
+
+         :config
+         (with-eval-after-load 'magit-mode
+           (add-hook 'after-save-hook 'magit-after-save-refresh-status t)))
+
+    gitter
+    helm
+    html
+    javascript
+    lsp
+    markdown
+
+    (org :variables
+         org-enable-hugo-support t)
+
+    python
+
+    (shell :variables
+           shell-default-height 30
+           shell-default-position 'bottom)
+
+    spacemacs-navigation
+    spell-checking
+
+    (sql :variables
+         sql-backend 'lsp
+         sql-lsp-sqls-workspace-config-path nil)
+
+    syntax-checking
+    systemd
+    themes-megapack
+    treemacs
+    yaml
+  #+end_src
+- List additional package to install :: to extend the functionality of Emacs.
+
+  List of packages that will be installed without being wrapped in a layer
+  (generally the packages are installed only and should still be loaded using
+  =load= or =require= or =use-package= in the /User configuration/ section below
+  in this document).
+
+  If you need some configuration for these packages, then consider creating a
+  layer. You can also put the configuration in =dotspacemacs/user-config=.
+
+  To use a local version of a package, use the =:location= property and include
+  any dependencies, as dependencies will not be resolved automatically.
+
+  #+begin_example emacs-lisp
+    '(ess :location "~/code/ess-devel/")
+  #+end_example
+
+  #+name: dotspacemacs-additional-packages
+  #+begin_src emacs-lisp :noweb yes
+    ;; Copy editing and technical writing
+    ;; annotate
+
+    ;; Language server
+    eglot
+
+    <<dotspacemacs-additional-packages-system>>
+
+    ;; Completion with the Compleseus layer
+    marginalia
+
+    ;; File, directory, and version control packages
+    f
+    git
+
+    ;; Spacemacs & Emacs appearance packages
+    all-the-icons
+    info-colors	;; Extra colours for Emac's Info-mode
+    (logos :location (recipe
+                  :fetcher gitlab
+                  :repo "protesilaos/logos"))
+
+    ;; Org(anization) and information management
+    org-roam
+    org-roam-ui
+
+    ;; Scientific packages
+    ess	;; Excellent language mode for GNU R
+
+    ;; Multi-language buffers, incl. Rmd
+    (polymode :location (recipe :fetcher github :repo "polymode/polymode")) ; Override the ESS layer's definition of Polymode.
+    poly-R
+    poly-markdown
+    poly-noweb
+    poly-org
+
+    ;; Package management and configuration utility packages
+    quelpa
+    quelpa-use-package
+
+    spaceline-all-the-icons
+
+    ;; Web development packages
+    ;; vue-mode
+    ;; websocket
+    ;; simple-httpd
+
+    ;; Version control
+    forge
+
+    ;; Experimental or specialized packages
+    ;; crdt	;; Real-time collaborative editing
+  #+end_src
+  
+  - System configuration utility and language packages :: additional packages can be declared in multiple source blocks of the same name.
+
+    By using multiple source blocks with the same name,
+    ~dotspacemacs-additional-packages~, the list can be made more manageable and
+    you can write commentary about a package. This allows you to also link to
+    other files, if you would like to manage a specific part of your
+    configuration in another source file.
+    
+    #+name: dotspacemacs-additional-packages-system
+    #+begin_src emacs-lisp
+      ;; System configuration utility packages
+      ;; KMonad configuration language syntax
+      (kbd-mode
+       :location
+       (recipe
+        :fetcher github
+        :repo "kmonad/kbd-mode"))
+    #+end_src
+- List packages that should not be updated :: to pin or freeze a package to a particular version or commit.
+
+  #+begin_example emacs-lisp
+    ;; TODO: provide an example of a frozen package!
+  #+end_example
+
+  #+name: dotspacemacs-frozen-packages
+  #+begin_src emacs-lisp
+  #+end_src
+- List packages to exclude :: to prevent any layer from installing and loading that package.
+
+  TODO: write a draft Spacemacs User Guide.
+  More on package exclusion can be found in the /Spacemacs User Guide/.
+
+  #+begin_example emacs-lisp
+    gitter ;; If you do not want to install or load the (future) built-in Gitter chat layer–package.
+  #+end_example
+
+  #+name: dotspacemacs-excluded-packages
+  #+begin_src emacs-lisp
+  #+end_src
+- Select a package installation method :: to configure when packages are installed.
+
+  Defines the behaviour of Spacemacs when installing packages. Possible values
+  are =used-only=, =used-but-keep-unused= and =all=. =used-only= installs only
+  explicitly used packages and deletes any unused packages as well as their
+  unused dependencies. =used-but-keep-unused= installs only the used packages
+  but won't delete unused ones. =all= installs *all* packages supported by
+  Spacemacs and never uninstalls them.
+
+  #+begin_example emacs-lisp
+    ;; 'used-but-keep-unused
+    ;; 'all
+    'used-only
+  #+end_example
+
+  #+name: dotspacemacs-install-packages
+  #+begin_src emacs-lisp
+    'used-only
+  #+end_src
+
+* TODO [#C] User environment variables
+  "Environment variables setup.
+This function defines the environment variables for your Emacs session. By
+default it calls `spacemacs/load-spacemacs-env' which loads the environment
+variables declared in `~/.spacemacs.env' or `~/.spacemacs.d/.spacemacs.env'.
+See the header of this file for more information."
+  (spacemacs/load-spacemacs-env)
+
+* TODO [#C] User initialization
+  "Initialization for user code:
+This function is called immediately after `dotspacemacs/init', before layer
+configuration.
+It is mostly for variables that should be set before packages are loaded.
+If you are unsure, try setting them in `dotspacemacs/user-config' first."
+
+* TODO [#B] User configuration
+  "Configuration for user code:
+This function is called at the very end of Spacemacs startup, after layer
+configuration.
+Put your configuration code here, except for variables that should be set
+before packages are loaded."
