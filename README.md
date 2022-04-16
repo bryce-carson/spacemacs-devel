@@ -1,3 +1,9 @@
+This is a playground repository right now. Please don't pay it any mind. There will be lots of changes.
+
+[![playground](https://littletikescommercial.com/wp-content/uploads/2020/11/banner-image2-2.png)](#playground-area-below)
+
+---
+
 <a href="https://develop.spacemacs.org">
 <img src="https://cdn.rawgit.com/syl20bnr/spacemacs/442d025779da2f62fc86c2082703697714db6514/assets/spacemacs-badge.svg" alt="Made with Spacemacs">
 </a>
@@ -28,5 +34,3 @@ Non-trivial code in the documentation is licensed under version three of the GNU
 ## asciinema image links:
 Did you know people from all around the world use Spacemacs?
 [![asciicast](https://asciinema.org/a/117813.svg)](https://asciinema.org/a/117813)
-
-[![playground](https://littletikescommercial.com/wp-content/uploads/2020/11/banner-image2-2.png)](#playground-area-below)
