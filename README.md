@@ -23,3 +23,8 @@ Please make sure to update tests as appropriate.
 
 ## License
 Non-trivial code in the documentation is licensed under version three of the GNU General Public License (`GPL-3.0-or-later`). The documentation is licensed under the GNU Free Documentation License, version three or later at your option (`GFDL-1.3-or-later`).
+
+# Playground area below
+## asciinema image links:
+Did you know people from all around the world use Spacemacs?
+[![asciicast](https://asciinema.org/a/117813.svg)](https://asciinema.org/a/117813)
