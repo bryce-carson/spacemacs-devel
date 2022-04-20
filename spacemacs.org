@@ -876,20 +876,50 @@ Each configuration item is a /verb/.
     'used-only
   #+end_src
 
-* TODO [#C] User environment variables
-  "Environment variables setup.
-This function defines the environment variables for your Emacs session. By
-default it calls `spacemacs/load-spacemacs-env' which loads the environment
-variables declared in `~/.spacemacs.env' or `~/.spacemacs.d/.spacemacs.env'.
-See the header of this file for more information."
-  (spacemacs/load-spacemacs-env)
+* User environment variables
 
-* TODO [#C] User initialization
-  "Initialization for user code:
-This function is called immediately after `dotspacemacs/init', before layer
-configuration.
-It is mostly for variables that should be set before packages are loaded.
-If you are unsure, try setting them in `dotspacemacs/user-config' first."
+Environment variables control some of the behaviour of Emacs and Spacemacs. The
+environment variables that are loaded at the beginning of the Spacemacs startup
+process are declared in a file, either ~~/.spacemacs.env~ or
+~~/.spacemacs.d/.spacemacs.env~, by default.
+
+The environment variables are loaded by calling the function
+=spacemacs/load-spacemacs-env=.
+
+TODO: ~spacemacs.org~ should be able to be stored wherever the user likes, as with the standard ~init.el~ file, which may be ~~/.emacs~ or etc..
+#+name: dotspacemacs-header-quote
+#+begin_quote
+This file is loaded by Spacemacs at startup. It must be stored in your home directory.
+#+end_quote
+
+#+name: dotspacemacs/user-env-example
+#+begin_example emacs-lisp
+  spacemacs/load-spacemacs-env
+#+end_example
+
+#+begin_src emacs-lisp
+  spacemacs/load-spacemacs-env
+#+end_src
+
+* User initialization
+
+Some functions, variables, constants, and packages require evaluation,
+definition, or requirement before other things which would otherwise influence
+their behaviour or break them.
+
+TODO: make the "Initialization" a link to its header. The code defined here is
+evaluated immediately after Initialization and before Layer Configuration.
+
+CAUTION: Unless the evaluation of the code requires a state that exists before
+Layer Configuration, it should not be written here. Place general configuration
+code in User Configuration.
+
+#+name: dotspacemacs-user-init-default
+#+begin_example emacs-lisp
+#+end_example
+
+#+begin_src emacs-lisp
+#+end_src
 
 * TODO [#B] User configuration
   "Configuration for user code:
