@@ -4,38 +4,68 @@
 #+TITLE: Spacemacs configuration
 #+TAGS: spacemacs|configuration|literate|documentation|beginner|startup
 
-* TODO [#C] Foreword
-This document is meant to be a genuinely /literate/ program. It is not. The
-purpose of the document is to concisely document and describe the
-/initialization/ settings and /user initialization/ program, and the /layer
-configuration/ settings and programs and /user configuration/ of Spacemacs.
+* How is Spacemacs Organized?
+Spacemacs is stored in the Emacs dot directory (=.emacs.d=); however, the
+Spacemacs configuration file may be stored in one of two places, with the first
+taking precedence: =$HOME/.spacemacs= OR =$HOME/.spacemacs.d/init.el=.
+
+Understand the difference between the identity and purpose of the initialization.
+- =.spacemacs= $==$ =.spacemacs.d/init.el=
+- =.spacemacs= $!=$ =.emacs.d/init.el=
+
+** Synchronization of dotfile changes
+To apply the modifications made in =~/.spacemacs= press ~SPC f e R~. It will
+re-execute the Spacemacs initialization process.
+
+*Note*: A synchronization re-executes the functions =dotspacemacs/init=,
+=dotspacemacs/user-init= and =dotspacemacs/user-config=.
+Depending on the contents of these functions, you may encounter some unwanted side
+effects. For instance, if you use a toggle in =dotspacemac/user-config= to enable
+some behavior, this behavior will be turned off whenever the dotfile is
+re-synchronized. To avoid these side-effects, it is recommended to either use
+=setq= expressions instead of toggle functions, or to use the =on= or =off=
+versions instead (i.e. instead of =spacemacs/toggle-<thing>=, use
+=spacemacs/toggle-<thing>-on= or =spacemacs/toggle-<thing>-off=).
+
+It is possible to /skip/ the execution of =dotspacemacs/user-config= with the
+universal argument (~SPC u SPC f e R~).
+
+* TODO Foreword: the experimental literate Spacemacs
+This foreword introduces the new core feature(s): the supported literate
+configuration; the /literate/ part of the configuration program.
+
+This document is part of a genuinely /literate/ program: Spacemacs. Without the
+rest of the program the purpose of this document is to elaborate on the contents
+of ~.spacemacs~. The purpose of the document is to concisely document and
+describe the /initialization/ settings and /user initialization/ program, and
+the /layer configuration/ settings and programs, and /user configuration/ of
+Spacemacs.
 
 To achieve the purpose of this document, it does not contain the entire literate
-program. The fundamental operations of this program are contained elsewhere,
-mostly in =core-configuration-layer.el= and =core-spacemacs.el=.
+program. The logical operations of this program are contained elsewhere, in
+=core-literate-configuration-layer.el= and =core-literate-spacemacs.el=, which
+are also literate programs.
 
-This document contains only the prose necessary to introduce this new core
-feature, the supported literate configuration, and the /literate/ part of the
-configuration program.
-
-** TODO User guide
-** TODO Developer manual
-The literate configuration is /literate/, so non-trivial code contributions
-related to it must also be literate. A trivial contribution is a bug-fix,
-spelling correction, or other Emacs Lisp or /noweb/ improvement.
+** TODO User manual
+** TODO Writer guide
+The literate configuration and literate Spacemacs are /literate/ documents and
+programs, so non-trivial code contributions related to it must also be literate.
+A trivial contribution is a bug-fix, spelling correction, or other Emacs Lisp or
+/noweb/ improvement only.
 
 If you aren't convinced that literate programming is worthwhile, do not use this
-configuration. Use the bog-standard =.spacemacs= configuration file. This
-feature is in alpha-testing and is experimental.
+configuration. Use the =.spacemacs= configuration file. This experimental
+feature-branch is in alpha-testing.
 
 It is recommended to listen to Tim Daly's presentation called /Literate
 Programming in the Large/, given at Write the Docs. You may also enjoy watching
 Daly install a literate version of Clojure. Both are recommended to remind
-yourself that literate programming is not about Org or Babel. It is more about
-=noweb=, and writing technical documentation than it is programming: you are
-communicating to the human readers of your program what you are instructing
-/their/ computer to do, you are not communicating to the Emacs Lisp reader (the
-interpreter).
+yourself that literate programming is not about Org or Org Babel. Literate
+programming is a style of technical documentation that is simultaneously source
+code. The writer communicates to the reader of the document what the programmer
+instructs the reader's computer to do.
+
+Do not communicate primarily or only to the Emacs Lisp interpreter.
 
 *** dotspacemacs/layers collator
 The following source block includes the syntax necessary to define the
@@ -103,7 +133,7 @@ reference becomes a multi-line comment.
 Whereas the "correct", albeit inconvenient and not ideal, noweb reference
 syntax, would expand properly. The whitespace below does not reflect the
 whitespace of the weaved program, and the weaved program will not be exampled to
-spare your palette.
+spare your visual palette.
 
 #+begin_example emacs-lisp
   dotspacemacs-configuration-layer-path '("~/code/layers/"
@@ -113,7 +143,7 @@ spare your palette.
                                           "~/buggy-code/layers/")
 #+end_example
 
-* TODO [#B] Initialization
+* TODO Initialization
 :PROPERTIES:
 :header-args:emacs-lisp :noweb-ref dotspacemacs/init
 :END:
@@ -123,8 +153,20 @@ initialization. It should only modify the values of Spacemacs settings.
 The following items are an exhaustive list of all configurable aspects of the
 initialization process of Spacemacs.
 
-NOTE: There are ninety-seven (97) initialization variables.
+NOTE: There are currently ninety-seven (97) initialization variables.
 
+- Spacemacs init file name :: string
+  This defines the name of the user configuration file for Spacemacs when either
+  =$SPACEMACSDIR= is set or ~~/.spacemacs.d~ exists and no ~~/.spacemacs~ file
+  exists.
+
+  The default value is ="init.el"=. The =$SPACEMACS_INIT_FILE_NAME= environment
+  variable will be used if set instead of the default.
+  
+  #+name: dotspacemacs-init-file-name
+  #+begin_src emacs-lisp
+    "init.el"
+  #+end_src
 - Enable Emacs portable dumper? :: boolean
   If non-nil then enable support for the portable dumper. You'll need to compile
   Emacs 27 from source following the instructions in file EXPERIMENTAL.org at to
@@ -559,20 +601,19 @@ NOTE: There are ninety-seven (97) initialization variables.
     nil
   #+end_src
 
-* TODO [#A] Layer configuration
+* Layer configuration
 :PROPERTIES:
 :header-args:emacs-lisp :noweb-ref dotspacemacs-layer-configuration
 :END:
-
 Layers are the ~entity~ that compose Spacemacs. Layers configure Emacs
 behaviour, packages, and functionality. One aspect of Emacs behaviour that
 layers configure is how Emacs responds to opening a file of a particular MIME
 type; lazy layer-installation methods specify this behaviour.
 
-TODO: ensure each item in /Layer Configuration/ is a verb.
 Each setting has a short and a long description. You should read this section as
-a set of things to do, such as selecting, specifying, enumerating, et cetera.
-Each configuration item is a /verb/.
+a list of things to do, such as selecting, specifying, enumerating, or other
+verbs related to configuring what layers Spacemacs will use, and how the layers
+will be loaded and used.
 
 - Select a base layer :: as the foundation of Spacemacs.
 
@@ -638,7 +679,7 @@ Each configuration item is a /verb/.
 - Provide confirmation for lazy layer-installation :: when layers are lazy–installed
 
   If non-nil a confirmation prompt is displayed when a layer can be
-  lazy-installed.
+  lazy-installed. If nil then layers will automatically be lazy-installed.
 
   #+begin_example emacs-lisp
     ;; nil
@@ -651,8 +692,23 @@ Each configuration item is a /verb/.
   #+end_src
 - List additional configuration layer paths :: to use layers outside the Spacemacs directory.
 
-  Additional paths that contain configuration layers may be specified here.
-  Paths must have a trailing slash.
+  Configuration layers have a directory structure specified in the
+  documentation. The root path(s) where configuration layers made known to
+  Spacemacs are configured by the variables ~configuration-layer-directory~ for
+  included layers, ~configuration-layer-private-layer-directory~ for private
+  configuration layers, and ~dotspacemacs-configuration-layer-path~ which is set
+  by this block.
+
+  The usual place to store private configuration layers is in the =private=
+  subdirectory of the Spacemacs directory. Layers in the =private= subdirectory
+  are ignored by Git, but may be version controlled manually by initializing a
+  Git repository in the =private= subdirectory.
+
+  Modifying the value of the first two variables may break core functionality,
+  so additional paths that contain configuration layers should be specified
+  here if =private= is not sufficient for your workflow.
+
+  NOTE: paths must have a trailing slash.
 
   #+BEGIN_EXAMPLE emacs-lisp
     "~/code/development-layers/"
@@ -876,8 +932,7 @@ Each configuration item is a /verb/.
     'used-only
   #+end_src
 
-* User environment variables
-
+* Environment variables
 Environment variables control some of the behaviour of Emacs and Spacemacs. The
 environment variables that are loaded at the beginning of the Spacemacs startup
 process are declared in a file, either ~~/.spacemacs.env~ or
@@ -902,7 +957,6 @@ This file is loaded by Spacemacs at startup. It must be stored in your home dire
 #+end_src
 
 * User initialization
-
 Some functions, variables, constants, and packages require evaluation,
 definition, or requirement before other things which would otherwise influence
 their behaviour or break them.
@@ -916,14 +970,71 @@ code in User Configuration.
 
 #+name: dotspacemacs-user-init-default
 #+begin_example emacs-lisp
+(setq-default
+ git-magit-status-fullscreen t
+ forge-add-default-bindings nil)
 #+end_example
 
 #+begin_src emacs-lisp
 #+end_src
 
-* TODO [#B] User configuration
-  "Configuration for user code:
-This function is called at the very end of Spacemacs startup, after layer
-configuration.
-Put your configuration code here, except for variables that should be set
-before packages are loaded."
+* Package and variable configuration
+The last step of Spacemacs' initialization process is to evaluate User
+Configuration code. Constants, packages, and variables that must be evaluated
+before packages are loaded should be placed in the User Initialization block.
+
+#+name: dotspacemacs-user-configuration-example
+#+begin_example emacs-lisp
+(use-package gitter)
+#+end_example
+
+#+begin_src emacs-lisp
+#+end_src
+* Portable dumper
+Libraries to load while dumping. This block is evaluated while dumping the
+Spacemacs configuration. `require' or `load' libraries to include them in the
+dump.
+
+The experimental portable dumper facilities in Spacemacs support ~pre-dump~
+functions in layers, which specify the modes of that layer to dump. When
+dumping, layers with pre-dump functions are dumped first, then the User Load
+blocks are evaluated.
+
+See the portable dumper documentation in the Emacs Manual for more information.
+
+#+name: pdmp-user-load-example
+#+begin_example emacs-lisp
+  (if (load "~/.spacemacs.d/elpa/term-cursor.el")
+      (require 'term-cursor))
+  (require 'diminish)
+  (require 'ess)
+  (require 'polymode)
+  (require 'magit-bookmark)
+  (require 'tramp)
+  (require 'url-http)
+  (require 'spaceline)
+  (require 'journalctl-mode)
+  (require 'org-rich-yank)
+  (require 'seq)
+#+end_example
+
+The portable dumper was merged into Emacs 27.1, but Spacemacs does not fully
+support this feature yet. There are many things which are unknown. These are the
+packages which I found I needed to require for things to work smoothly when
+using the portable dumper.
+
+#+name: pdmp-user-load
+#+begin_src emacs-lisp
+  (require 'diminish)
+  (require 'magit-bookmark)
+  (require 'spaceline)
+  (require 'org-rich-yank)
+#+end_src
+
+Additionally, the following lines were set in ~dotspacemacs/user-config~:
+
+#+begin_src emacs-lisp
+  (spacemacs/set-default-font dotspacemacs-default-font)
+  (spacemacs-modeline/init-spaceline)
+  (spacemacs/spaceline-config-startup)
+#+end_src
