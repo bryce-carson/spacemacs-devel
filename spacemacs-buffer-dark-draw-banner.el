@@ -45,8 +45,8 @@
 
     ;; If the selected banner is a Dark Draw banner get frame timing and drawing size information.
     (if ddw-banner-file
-        (defvar dotspacemacs--ddw-banner (jsonl-read-from-file ddw-banner-file)))
-    (dolist (value dotspacemacs--ddw-banner)
+        (defvar dsm--ddw-banner-list (jsonl-read-from-file ddw-banner-file)))
+    (dolist (value dsm--ddw-banner-list)
       (let-alist value
         (if (and .id (string= .type "frame"))
             (setq dsm--ddw-banner-frame-times `(,@dsm--ddw-banner-frame-times ,.duration_ms))
