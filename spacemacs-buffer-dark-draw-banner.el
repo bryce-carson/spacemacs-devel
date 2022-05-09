@@ -59,16 +59,14 @@
             (setq dsm--ddw-banner
                   (if (not .frame)
                       ;; NOTE: add to the global frame.
-                      (setq dsm-ddw-banner
-                            (plist-put dsm--ddw-banner 'global-frame
-                                  (cons (plist-get dsm--ddw-banner 'global-frame)
-                                        value)))
+                      (plist-put dsm--ddw-banner 'global-frame
+                                 (cons (plist-get dsm--ddw-banner 'global-frame)
+                                       value))
 
                     ;; NOTE: adding to frames.
-                    (setq dsm-ddw-banner
-                          (plist-put dsm--ddw-banner (intern (concat "frame-" .frame))
-                                     (cons (plist-get dsm--ddw-banner (intern (concat "frame-" .frame)))
-                                           value)))))))))))
+                    (plist-put dsm--ddw-banner (intern (concat "frame-" .frame))
+                               (cons (plist-get dsm--ddw-banner (intern (concat "frame-" .frame)))
+                                     value))))))))))
 
 ;; Determine the size of the Dark Draw banner
 (setq dsm--ddw-banner-x-max (seq-max dsm--ddw-banner-x-max))
