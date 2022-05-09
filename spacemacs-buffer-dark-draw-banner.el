@@ -1,6 +1,6 @@
 ;;; spacemacs-buffer-dark-draw-banner.el --- Experimental Dark Draw banners for Spacemacs home buffer                     -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022  Bryce Carson
+;; Copyright © 2022  Bryce Carson
 
 ;; Author: Bryce Carson <bryce.a.carson@gmail.com>
 ;; Keywords: lisp, spacemacs, animation, text
