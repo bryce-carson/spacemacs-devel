@@ -50,6 +50,7 @@
 (defvar dsm--ddw-banner-x-max '(0))
 (defvar dsm--ddw-banner-y-max '(0))
 (defvar dsm--ddw-banner-list nil)
+(defvar dsm//ddw-banner nil "The list of lists of `buffer-string's which compose the frames of the Dark Draw 2 animation to be used as a Spacemacs banner.")
 
 
 ;;; NOTE: Functions
@@ -121,90 +122,67 @@ buffer this function _should_ move point to."
          (< elt-1-x elt-2-x))))
 
 
-;;; NOTE: TODO: Procedure
 
-;; TODO: refactor this. It's dirtyyy!
-;; TODO: barf out the inner `let*' after testing is done.
-(let* ((dotspacemacs-startup-banner "/home/brycecarson/6x5.ddw"))
-  ;; TODO: FIXME: remove this when testing is done.
-  ;; For testing usage
-  (setq dsm--ddw-banner nil)
-  (setq dsm--ddw-banner-frame-times '(0))
-  (setq dsm--ddw-banner-x-max '(0))
-  (setq dsm--ddw-banner-y-max '(0))
-  (setq dsm--ddw-banner-list nil)
+(defun dsm--ddw-banner-setup ()
+  (setq dsm--ddw-banner-list (jsonl-read-from-file dotspacemacs-startup-banner))
+  (dolist (jsonl-value dsm--ddw-banner-list)
+    (let-alist jsonl-value
+      (if (and .id (string= .type "frame"))
+          (setq dsm--ddw-banner-frame-times `(,@dsm--ddw-banner-frame-times ,.duration_ms))
+        (progn
+          (setq dsm--ddw-banner-x-max (add-to-list 'dsm--ddw-banner-x-max
+                                                   (if (equal (length .text) 1)
+                                                       .x
+                                                     (if (> (length .text) 1)
+                                                         (+ .x (length .text))
+                                                       0))
+                                                   t))
+          (setq dsm--ddw-banner-y-max (add-to-list 'dsm--ddw-banner-y-max .y t))
 
-  ;; Bind the file-name if the selected banner is a Dark Draw banner.
-  (let* ((ddw-banner-file (if (and (stringp dotspacemacs-startup-banner)
-                                   (file-exists-p dotspacemacs-startup-banner)
-                                   (string= (file-name-extension dotspacemacs-startup-banner) "ddw"))
-                              dotspacemacs-startup-banner)))
+          ;; Get and then set text and colour information in a property list.
+          (setq dsm--ddw-banner
+                (if (not .frame)
+                    ;; NOTE: add to the global frame.
+                    (plist-put dsm--ddw-banner 'frame-global
+                               (append (plist-get dsm--ddw-banner 'frame-global)
+                                       (list jsonl-value)))
 
-    ;; If the selected banner is a Dark Draw banner get frame timing and drawing size information.
-    (if ddw-banner-file (progn (setq dsm--ddw-banner-list (jsonl-read-from-file ddw-banner-file))
-                               (dolist (jsonl-value dsm--ddw-banner-list)
-                                 (let-alist jsonl-value
-                                   (if (and .id (string= .type "frame"))
-                                       (setq dsm--ddw-banner-frame-times `(,@dsm--ddw-banner-frame-times ,.duration_ms))
-                                     (progn
-                                       (setq dsm--ddw-banner-x-max (add-to-list 'dsm--ddw-banner-x-max
-                                                                                (if (equal (length .text) 1)
-                                                                                    .x
-                                                                                  (if (> (length .text) 1)
-                                                                                      (+ .x (length .text))
-                                                                                    0))
-                                                                                t))
-                                       (setq dsm--ddw-banner-y-max (add-to-list 'dsm--ddw-banner-y-max .y t))
+                  ;; NOTE: adding to frames.
+                  (plist-put dsm--ddw-banner (intern (concat "frame-" .frame))
+                             (append (plist-get dsm--ddw-banner (intern (concat "frame-" .frame)))
+                                     (list jsonl-value)))))))))
+  (setq dsm--ddw-banner
+        (mapcar (lambda (elt)
+                  (if (listp elt)
+                      (sort elt #'ddw--sort-list)
+                    elt))
+                dsm--ddw-banner))
+  (setq dsm--ddw-banner-x-max (seq-max dsm--ddw-banner-x-max))
+  (setq dsm--ddw-banner-y-max (seq-max dsm--ddw-banner-y-max)))
 
-                                       ;; Get and then set text and colour information in a property list.
-                                       (setq dsm--ddw-banner
-                                             (if (not .frame)
-                                                 ;; NOTE: add to the global frame.
-                                                 (plist-put dsm--ddw-banner 'frame-global
-                                                            (append (plist-get dsm--ddw-banner 'frame-global)
-                                                                    (list jsonl-value)))
-
-                                               ;; NOTE: adding to frames.
-                                               (plist-put dsm--ddw-banner (intern (concat "frame-" .frame))
-                                                          (append (plist-get dsm--ddw-banner (intern (concat "frame-" .frame)))
-                                                                  (list jsonl-value)))))))))))
-
-    ;; NOTE: sort the banner's elements.
-    (setq dsm--ddw-banner
-          (mapcar (lambda (elt)
-                    (if (listp elt)
-                        (sort elt #'ddw--sort-list)
-                      elt))
-                  dsm--ddw-banner))
-
-    ;; Determine the size of the Dark Draw banner
-    (setq dsm--ddw-banner-x-max (seq-max dsm--ddw-banner-x-max))
-    (setq dsm--ddw-banner-y-max (seq-max dsm--ddw-banner-y-max))
-
-    (save-excursion
-      (let ((temporary-buffer (set-buffer (get-buffer-create (concat "dsm//ddw/test-buffer-" (number-to-string (random)))))))
-        (defvar dsm//ddw-banner
-          (loop for frame-index-in-list in (number-sequence 1 (let ((frames-count (length dsm--ddw-banner)))
-                                                               (if (oddp frames-count)
-                                                                   (1- frames-count)
-                                                                 frames-count))
-                                                           2)
-               collect
-               (progn
-                 (erase-buffer)
-                 (ddw--insert-whitespace-rectangle dsm--ddw-banner-x-max dsm--ddw-banner-y-max)
-                 (dolist (value (nth frame-index-in-list dsm--ddw-banner))
-                   (let-alist value
-                     (ddw--goto-line-then-forward-char .x .y)
-                     (insert (eval (cl-multiple-value-apply (lambda (&rest values)
-                                                              `(propertize ,.text 'face '(,@values)))
-                                                            (if (not (= (length .color) 0))
-                                                                `(:foreground ,.color :drawing 't)
-                                                              '(:drawing 't)))))
-                     (delete-forward-char (length .text))))
-                 (list (buffer-string))))
-          "The list of lists of `buffer-string's which compose the frames of the Dark Draw 2 animation to be used as a Spacemacs banner.")
-        (kill-buffer temporary-buffer)))))
+(defun dsm--ddw-banner-get-strings ()
+  (save-excursion
+    (with-temp-buffer
+      (setq dsm//ddw-banner
+            (loop for frame-index-in-list in (number-sequence 1 (let ((frames-count (length dsm--ddw-banner)))
+                                                                  (if (oddp frames-count)
+                                                                      (1- frames-count)
+                                                                    frames-count))
+                                                              2)
+                  collect
+                  (progn
+                    (erase-buffer)
+                    (ddw--insert-whitespace-rectangle dsm--ddw-banner-x-max dsm--ddw-banner-y-max)
+                    (dolist (value (nth frame-index-in-list dsm--ddw-banner))
+                      (let-alist value
+                        (ddw--goto-line-then-forward-char .x .y)
+                        (insert (eval (cl-multiple-value-apply (lambda (&rest values)
+                                                                 `(propertize ,.text 'font-lock-face '(,@values)))
+                                                               (if (not (= (length .color) 0))
+                                                                   `(:foreground ,.color :drawing 't)
+                                                                 '(:drawing 't)))))
+                        (delete-forward-char (length .text))))
+                    (list (buffer-string))))))))
 
 ;; Pseudocode
 ;; DONE:
