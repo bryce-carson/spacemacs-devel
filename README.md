@@ -34,3 +34,6 @@ Non-trivial code in the documentation is licensed under version three of the GNU
 ## asciinema image links:
 Did you know people from all around the world use Spacemacs?
 [![asciicast](https://asciinema.org/a/117813.svg)](https://asciinema.org/a/117813)
+
+## SVG animation elements / SMIL (no JavaScript or CSS)
+[![](https://svgwg.org/specs/animations/images/anim01.svg)]

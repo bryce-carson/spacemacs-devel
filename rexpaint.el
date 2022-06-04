@@ -118,7 +118,7 @@ height in Y characters."
   (goto-char (point-min)))
 
 ;; Test:
-(setq rxp--ascii-banner (rxp--parse-csv "~/Downloads/REXPaint-v1.60/images/CP437.csv"))
+(setq rxp--ascii-banner (rxp--parse-csv "~/Downloads/REXPaint-v1.60/images/spacemacs-24x24.csv"))
 
 (rxp--ascii-banner-get-dimensions)
 

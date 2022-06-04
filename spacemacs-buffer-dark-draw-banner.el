@@ -50,7 +50,7 @@
 (defvar dsm--ddw-banner-x-max '(0))
 (defvar dsm--ddw-banner-y-max '(0))
 (defvar dsm--ddw-banner-list nil)
-(defvar dsm//ddw-banner nil "The list of lists of `buffer-string's which compose the frames of the Dark Draw 2 animation to be used as a Spacemacs banner.")
+(defvar spacemacs-buffer--DarkDraw-cache-file-string nil "The list of lists of `buffer-string's which compose the frames of the Dark Draw 2 animation to be used as a Spacemacs banner.")
 
 
 ;;; NOTE: Functions
@@ -123,8 +123,8 @@ buffer this function _should_ move point to."
 
 
 
-(defun dsm--ddw-banner-setup ()
-  (setq dsm--ddw-banner-list (jsonl-read-from-file dotspacemacs-startup-banner))
+(defun dsm--ddw-banner-setup (file)
+  (setq dsm--ddw-banner-list (jsonl-read-from-file file))
   (dolist (jsonl-value dsm--ddw-banner-list)
     (let-alist jsonl-value
       (if (and .id (string= .type "frame"))
@@ -163,7 +163,7 @@ buffer this function _should_ move point to."
 (defun dsm--ddw-banner-get-strings ()
   (save-excursion
     (with-temp-buffer
-      (setq dsm//ddw-banner
+      (setq spacemacs-buffer--DarkDraw-cache-file-string
             (loop for frame-index-in-list in (number-sequence 1 (let ((frames-count (length dsm--ddw-banner)))
                                                                   (if (oddp frames-count)
                                                                       (1- frames-count)
